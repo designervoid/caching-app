@@ -4,7 +4,7 @@ import { fetcher } from 'utils/fetcher';
 export function useMatchMutate() {
     const { cache, mutate } = useSWRConfig();
 
-    return (matcher: RegExp, ...args: any) => {
+    return (matcher: RegExp) => {
       if (!(cache instanceof Map)) {
         throw new Error('matchMutate requires the cache provider to be a Map instance')
       }
@@ -16,7 +16,8 @@ export function useMatchMutate() {
           keys.push(key)
         }
       }
-  
+    
+
       const mutations = keys.map(async (key) => {
         const data = await fetcher(key);
         mutate(key, data);
