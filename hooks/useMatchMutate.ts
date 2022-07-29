@@ -16,7 +16,6 @@ export function useMatchMutate() {
           keys.push(key)
         }
       }
-    
 
       const mutations = keys.map(async (key) => {
         const data = await fetcher(key);
