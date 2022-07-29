@@ -1,4 +1,5 @@
 import { useSWRConfig } from 'swr'
+import { fetcher } from 'utils/fetcher';
 
 export function useMatchMutate() {
     const { cache, mutate } = useSWRConfig();
@@ -16,7 +17,10 @@ export function useMatchMutate() {
         }
       }
   
-      const mutations = keys.map((key) => mutate(key, ...args))
+      const mutations = keys.map(async (key) => {
+        const data = await fetcher(key);
+        mutate(key, data);
+      })
 
       return Promise.all(mutations)
     }
