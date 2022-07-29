@@ -39,13 +39,13 @@ export const Search = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setQueryParamsHistory(prev => {
-        prev.forEach(async (queryParam) => {
-            const response = await fetcher(`/api/v1/getCurrentWeather?${queryParam}`);
+        prev.forEach(async (e) => 
+          {
+            const response = await fetcher(`/api/v1/getCurrentWeather?${e}`);
             mutate(
               response,
             );
-        });
-        
+        })
         return [...prev];
       })
     }, minute);
