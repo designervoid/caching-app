@@ -15,8 +15,6 @@ export function useMatchMutate() {
           keys.push(key)
         }
       }
-
-      console.log(keys);
   
       const mutations = keys.map((key) => mutate(key, ...args))
 
