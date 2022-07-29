@@ -1,12 +1,11 @@
 import { FormElement, Input, Loading, Row, Spacer } from "@nextui-org/react";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { WeatherResponse } from "types/Weather";
-import useSWR, { useSWRConfig } from 'swr'
+import useSWR from 'swr'
 import { fetcher } from "utils/fetcher";
 import useDebounce from "hooks/useDebounce";
 
 export const Search = () => {
-  const { cache } = useSWRConfig()
   const [search, setSearch] = useState('');
   
   const queryParams = useDebounce(`city=${search}`, 1000);
@@ -20,11 +19,6 @@ export const Search = () => {
   const handleInputChange = (e: ChangeEvent<FormElement>) => {
     setSearch(e.target.value);
   };
-
-  useEffect(() => {
-    cache.set('search', search);
-    cache.set('data', data);
-  }, [cache, search, data]);
 
   return (
     <div>
