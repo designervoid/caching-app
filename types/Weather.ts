@@ -54,9 +54,3 @@ export interface Wind {
     speed: number;
     deg:   number;
 }
-
-interface Cache<Data> {
-    get(key: string): Data | undefined
-    set(key: string, value: Data): void
-    delete(key: string): void
-}

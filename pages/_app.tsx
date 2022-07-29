@@ -5,9 +5,9 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page);
 
   return (
-    <NextUIProvider>
-      {getLayout(<Component {...pageProps} />)}
-    </NextUIProvider>
+      <NextUIProvider>
+        {getLayout(<Component {...pageProps} />)}
+      </NextUIProvider>
   );
 }
 
