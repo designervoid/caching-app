@@ -1,7 +1,7 @@
 import { FormElement, Input, Loading, Row, Spacer } from "@nextui-org/react";
 import { ChangeEvent, useEffect, useState } from "react";
 import { WeatherResponse } from "types/Weather";
-import useSWR, { SWRConfig, useSWRConfig } from 'swr'
+import useSWR, { SWRConfig, useSWRConfig, Cache } from 'swr'
 import { fetcher } from "utils/fetcher";
 import useDebounce from "hooks/useDebounce";
 import { useMatchMutate } from "hooks/useMatchMutate";
@@ -9,9 +9,34 @@ import { useMatchMutate } from "hooks/useMatchMutate";
 const thousandMilliseconds = 1e3;
 const oneMinute = thousandMilliseconds * 60;
 
-export const Search = () => {
-  const [map, setMap] = useState(new Map());
+function localStorageProvider(cache: Cache<any>) {
+  // When initializing, we restore the data from `localStorage` into a map.
+  const map = new Map(JSON.parse(localStorage.getItem('app-cache') || '[]'))
 
+  window.onbeforeunload = (event) => {
+    const e = event || window.event;
+    // Cancel the event
+    e.preventDefault();
+
+    if (!(cache instanceof Map)) {
+      throw new Error('matchMutate requires the cache provider to be a Map instance')
+    }
+
+    // Save cache
+    const appCache = JSON.stringify([...new Set(Array.from(cache.entries()))])
+    localStorage.setItem('app-cache', appCache);
+
+    if (e) {
+      e.returnValue = ''; // Legacy method for cross browser support
+    }
+    return ''; // Legacy method for cross browser support
+  };
+
+  // We still use the map for write & read for performance.
+  return map
+}
+
+export const Search = () => {
   const matchMutate = useMatchMutate()
   
   const [search, setSearch] = useState('');
@@ -33,43 +58,16 @@ export const Search = () => {
     const interval = setInterval(() => {
       const endpointRegex = /^\/api\//;
       matchMutate(endpointRegex);
-      setMap(new Map());
     }, oneMinute);
 
     return () => {
       clearInterval(interval);
     }
   }, [matchMutate]);
-
-  useEffect(() => {
-    const appCacheLocal = localStorage.getItem('app-cache');
-    setMap(JSON.parse(appCacheLocal || '[]'));
-  }, []);
-
-  useEffect(() => {
-    window.onbeforeunload = (event) => {
-      const e = event || window.event;
-      // Cancel the event
-      e.preventDefault();
-
-      if (!(cache instanceof Map)) {
-        throw new Error('matchMutate requires the cache provider to be a Map instance')
-      }
-
-      // Save cache
-      const appCache = JSON.stringify([...new Set(Array.from(cache.entries()))])
-      localStorage.setItem('app-cache', appCache);
-
-      if (e) {
-        e.returnValue = ''; // Legacy method for cross browser support
-      }
-      return ''; // Legacy method for cross browser support
-    };
-  }, [cache, map]);
-
+  
   return (
     <SWRConfig value={{ provider: () => {
-      return map;
+      return localStorageProvider(cache);
     } }}>
       <div>
         <Row>
