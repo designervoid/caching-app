@@ -10,7 +10,7 @@ export function useMatchMutate() {
       }
   
       const keys = []
-  
+      
       for (const key of cache.keys()) {
         if (matcher.test(key)) {
           keys.push(key)

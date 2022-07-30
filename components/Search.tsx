@@ -1,7 +1,7 @@
 import { FormElement, Input, Loading, Row, Spacer } from "@nextui-org/react";
 import { ChangeEvent, useEffect, useState } from "react";
 import { WeatherResponse } from "types/Weather";
-import useSWR, { SWRConfig } from 'swr'
+import useSWR, { SWRConfig, useSWRConfig } from 'swr'
 import { fetcher } from "utils/fetcher";
 import useDebounce from "hooks/useDebounce";
 import { useMatchMutate } from "hooks/useMatchMutate";
@@ -10,9 +10,12 @@ const thousandMilliseconds = 1e3;
 const oneMinute = thousandMilliseconds * 60;
 
 export const Search = () => {
+  const [map, setMap] = useState(new Map());
+
   const matchMutate = useMatchMutate()
   
   const [search, setSearch] = useState('');
+  const {cache} = useSWRConfig();
   
   const queryParams = useDebounce(`city=${search}`, thousandMilliseconds);
   
@@ -30,6 +33,7 @@ export const Search = () => {
     const interval = setInterval(() => {
       const endpointRegex = /^\/api\//;
       matchMutate(endpointRegex);
+      setMap(new Map());
     }, oneMinute);
 
     return () => {
@@ -37,8 +41,36 @@ export const Search = () => {
     }
   }, [matchMutate]);
 
+  useEffect(() => {
+    const appCacheLocal = localStorage.getItem('app-cache');
+    setMap(JSON.parse(appCacheLocal || '[]'));
+  }, []);
+
+  useEffect(() => {
+    window.onbeforeunload = (event) => {
+      const e = event || window.event;
+      // Cancel the event
+      e.preventDefault();
+
+      if (!(cache instanceof Map)) {
+        throw new Error('matchMutate requires the cache provider to be a Map instance')
+      }
+
+      // Save cache
+      const appCache = JSON.stringify([...new Set(Array.from(cache.entries()))])
+      localStorage.setItem('app-cache', appCache);
+
+      if (e) {
+        e.returnValue = ''; // Legacy method for cross browser support
+      }
+      return ''; // Legacy method for cross browser support
+    };
+  }, [cache, map]);
+
   return (
-    <SWRConfig value={{ provider: () => new Map() }}>
+    <SWRConfig value={{ provider: () => {
+      return map;
+    } }}>
       <div>
         <Row>
           <Input clearable label="City" placeholder="Enter the city" initialValue="" onChange={handleInputChange} />
